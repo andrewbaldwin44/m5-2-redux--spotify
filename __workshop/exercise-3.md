@@ -33,4 +33,4 @@ We have given you the `authString` already, which uses a trick called "Base64 En
 
 Spend between 5-10 minutes seeing if you can combine these pieces into an endpoint that returns the access token when you make a request to the server with Insomnia.
 
-> 🆘 **Do this on your own. If you are stuck, you can look at this [hint](./_hints/hint-1.md).**
+> 🆘 **Do this on your own. If you are stuck, you can look at this [hint](../_hints/hint-1.md).**
