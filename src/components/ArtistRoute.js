@@ -1,39 +1,53 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import styled from "styled-components";
 
-import { fetchArtistProfile } from "../helpers/api-helpers";
+import { fetchArtistInfo } from "../helpers/api-helpers";
 import { largeNumberFormatter } from "../utils/utils";
 
+import PlayButton from "react-play-button";
+
 import {
-  requestArtist,
-  receiveArtist,
-  receiveArtistError
+  requestAllArtistInfo,
+  receiveArtistProfile,
+  receiveTopTracks,
+  receiveAllArtistInfo,
+  receiveArtistInfoError
 } from "../action";
 
 function ArtistRoute() {
+  const [currentlyPlaying, setCurrentlyPlaying] = useState(null);
+
   const dispatch = useDispatch();
 
   const currentArtist = useSelector(state => state.artists.currentArtist);
-  const artistStatus = useSelector(state => state.artists.status);
+  const topTracks = useSelector(state => state.artists.topTracks);
+  // const artistStatus = useSelector(state => state.artists.status);
   const accessToken = useSelector(state => state.auth.token);
-  const accessStatus = useSelector(state => state.auth.status);
+  // const accessStatus = useSelector(state => state.auth.status);
   const { id } = useParams();
 
   useEffect(() => {
     if (accessToken) {
-      dispatch(requestArtist());
+      dispatch(requestAllArtistInfo());
 
-      fetchArtistProfile(accessToken, id)
-        .then(data => dispatch(receiveArtist(data)))
-        .catch(error => dispatch(receiveArtistError()));
+      const ArtistProfile =
+        fetchArtistInfo(accessToken, id)
+          .then(data => dispatch(receiveArtistProfile(data)))
+          .catch(error => dispatch(receiveArtistInfoError()));
+
+      const ArtistTopTracks =
+        fetchArtistInfo(accessToken, id, 'top-tracks?country=CA')
+          .then(data => dispatch(receiveTopTracks(data.tracks)))
+          .catch(error => dispatch(receiveArtistInfoError()));
+
+      Promise.all([ArtistProfile, ArtistTopTracks]).then(() => dispatch(receiveAllArtistInfo()));
     }
   }, [accessToken]);
 
-  console.log(currentArtist)
 
-  if (currentArtist) {
+  if (currentArtist && topTracks) {
     const {
       name,
       images: [
@@ -49,6 +63,8 @@ function ArtistRoute() {
     } = currentArtist;
 
     const totalFollowers = largeNumberFormatter(total);
+
+    const [track] = topTracks;
 
     return (
       <Wrapper>
@@ -75,6 +91,21 @@ function ArtistRoute() {
             })}
           </TagsContainer>
         </TagsSection>
+        <PlayButton
+          url={track.preview_url}
+          active={currentlyPlaying === track.name}
+          play={() => {
+            setCurrentlyPlaying(track.name);
+          }}
+          stop={() => {
+            setCurrentlyPlaying(null);
+          }}
+          playIconColor="white"
+          stopIconColor="white"
+          idleBackgroundColor="rgba(75, 75, 75, 0.4)"
+          progressCircleColor="#3354FF"
+          progressCircleWidth={42}
+        />
       </Wrapper>
     )
   } else {
