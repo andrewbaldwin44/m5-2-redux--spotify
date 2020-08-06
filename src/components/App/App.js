@@ -15,14 +15,14 @@ const DEFAULT_ARTIST_ID = '6XyY86QOPPrYVGvF9ch6wz';
 
 const App = () => {
   const dispatch = useDispatch();
-  
+
   useEffect(() => {
     dispatch(requestAccessToken());
 
     fetch("/spotify_access_token")
       .then(response => response.json())
       .then(data => dispatch(receiveAccessToken(data.access_token)))
-      .catch((error) => dispatch(receiveAccessTokenError()));
+      .catch(error => dispatch(receiveAccessTokenError()));
   }, []);
 
   return (
